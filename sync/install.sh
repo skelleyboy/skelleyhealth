@@ -12,6 +12,11 @@ LOG="$HOME/Library/Logs/noop-web-sync.log"
 [ -n "$NODE" ] || { echo "Node.js isn't installed. Get it from https://nodejs.org, then run this again."; exit 1; }
 [ -f "$ROOT/.netlify/state.json" ] || { echo "Run ./deploy.sh first to create your Netlify site."; exit 1; }
 
+if ! ls "$HOME/Library/Preferences/netlify/config.json" >/dev/null 2>&1 || ! grep -q '"token"' "$HOME/Library/Preferences/netlify/config.json" 2>/dev/null; then
+  echo "→ Opening your browser to connect this Mac to Netlify (click Authorize)"
+  (cd "$ROOT" && npx --yes netlify-cli login)
+fi
+
 echo "→ Installing sync dependencies"
 (cd "$DIR" && npm install --silent --no-fund --no-audit)
 
