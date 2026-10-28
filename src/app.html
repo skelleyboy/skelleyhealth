@@ -1,0 +1,635 @@
+<title>NOOP Web</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: NOOP's Mac shell — fixed sidebar + centered 680px column; on phone the sidebar becomes a bottom tab bar. */
+:root {
+  --canvas: #F3F4F6; --surface: #FFFFFF; --surface-top: #FFFFFF; --inset: #E8E9ED;
+  --border: #D8DAE0; --edge: #FFFFFF;
+  --text: #17181C; --text-2: #555861; --text-3: #7D808A;
+  --mint: #149A78; --mint-deep: #0D765C; --mint-soft: rgba(20,154,120,.14);
+  --heart: #D94C64; --steel: #3A80D6; --sky: #5E92D6; --teal: #2E92B4; --coral: #D9682A;
+  --rest: #7B78E0; --lav: #8E949E;
+  --st-awake: #8E949E; --st-light: #7B78E0; --st-deep: #C13EC1; --st-rem: #8E3BD6;
+  --r0: #C0392B; --r30: #D9682A; --r55: #C99A00; --r78: #6FB23A; --r100: #0F9D62;
+  --s0: #7E460E; --s33: #A4621B; --s66: #C2792E; --s100: #D89240;
+  --warn: #C99A00; --bad: #C0392B;
+  --shadow: 0 1px 2px rgba(23,24,28,.06), 0 8px 24px rgba(23,24,28,.06);
+  --knob-hi: #FFFFFF; --knob-lo: #DCDEE4;
+  --f-ui: ui-rounded, "SF Pro Rounded", "SF Pro Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-num: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --radius: 18px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --canvas: #1D1E23; --surface: #2A2C34; --surface-top: #30323B; --inset: #23252C;
+  --border: #373A44; --edge: #4B4E59;
+  --text: #F7F7FA; --text-2: #C3C4CA; --text-3: #7D7F88;
+  --mint: #69DDB8; --mint-deep: #13A982; --mint-soft: rgba(105,221,184,.14);
+  --heart: #FF6B81; --steel: #6FA8E8; --sky: #7FB2E8; --teal: #3FA9C9; --coral: #E8743C;
+  --rest: #A7A4F4; --lav: #CAC8CB;
+  --st-awake: #CAC8CB; --st-light: #A7A4F4; --st-deep: #FD96FD; --st-rem: #AE5BEF;
+  --r0: #E0463C; --r30: #E8743C; --r55: #F9DF4A; --r78: #8FD86A; --r100: #03E095;
+  --s0: #9C5A14; --s33: #C2762A; --s66: #D98A3D; --s100: #F0A85A;
+  --warn: #F9DF4A; --bad: #E0463C;
+  --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 10px 30px rgba(0,0,0,.28);
+  --knob-hi: #3A3D47; --knob-lo: #1F2026;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --canvas: #1D1E23; --surface: #2A2C34; --surface-top: #30323B; --inset: #23252C;
+  --border: #373A44; --edge: #4B4E59;
+  --text: #F7F7FA; --text-2: #C3C4CA; --text-3: #7D7F88;
+  --mint: #69DDB8; --mint-deep: #13A982; --mint-soft: rgba(105,221,184,.14);
+  --heart: #FF6B81; --steel: #6FA8E8; --sky: #7FB2E8; --teal: #3FA9C9; --coral: #E8743C;
+  --rest: #A7A4F4; --lav: #CAC8CB;
+  --st-awake: #CAC8CB; --st-light: #A7A4F4; --st-deep: #FD96FD; --st-rem: #AE5BEF;
+  --r0: #E0463C; --r30: #E8743C; --r55: #F9DF4A; --r78: #8FD86A; --r100: #03E095;
+  --s0: #9C5A14; --s33: #C2762A; --s66: #D98A3D; --s100: #F0A85A;
+  --warn: #F9DF4A; --bad: #E0463C;
+  --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 10px 30px rgba(0,0,0,.28);
+  --knob-hi: #3A3D47; --knob-lo: #1F2026;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--canvas); color: var(--text); font-family: var(--f-ui); font-size: 15px; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; border-radius: 8px; }
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.over { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+
+/* Shell */
+.app { display: grid; grid-template-columns: 236px 1fr; min-height: 100%; }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 4px;
+  padding: 22px 12px 14px; border-right: 1px solid var(--border); background: var(--canvas); }
+.brand { display: flex; align-items: center; gap: 9px; padding: 4px 10px 18px; font-weight: 700; font-size: 19px; letter-spacing: .02em; }
+.brand svg { width: 22px; height: 22px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; background: none; border-radius: 9px;
+  color: var(--text-2); text-align: left; cursor: pointer; font-size: 14.5px; text-decoration: none; }
+.nav-item svg { width: 17px; height: 17px; color: var(--text-3); }
+.nav-item:hover { background: var(--inset); }
+.nav-item[aria-current="page"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.nav-item[aria-current="page"] svg { color: var(--mint); }
+.side-foot { margin-top: auto; }
+.status { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); }
+.status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 3px var(--mint-soft); flex: none; }
+.status.stale .dot { background: var(--warn); box-shadow: none; }
+.status b { display: block; font-size: 13px; font-weight: 600; }
+.status span { font-size: 12px; color: var(--text-3); }
+.main { min-width: 0; }
+.wrap { max-width: 720px; margin: 0 auto; padding-block: 34px 60px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 18px; }
+.tabbar { display: none; }
+
+/* Header */
+.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.head h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+.head .sub { color: var(--text-3); font-size: 13px; margin-top: 2px; }
+.daynav { display: flex; align-items: center; gap: 6px; }
+.icon-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface);
+  display: grid; place-items: center; cursor: pointer; color: var(--text-2); }
+.icon-btn:disabled { opacity: .35; cursor: default; }
+.icon-btn svg { width: 15px; height: 15px; }
+.batt { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 17px; border: 1px solid var(--border);
+  background: var(--surface); font-size: 13px; color: var(--text-2); }
+
+.banner { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border);
+  background: var(--surface); font-size: 13px; color: var(--text-2); line-height: 1.45; }
+.banner b { color: var(--text); }
+.banner svg { flex: none; width: 16px; height: 16px; margin-top: 1px; color: var(--mint); }
+
+/* Cards */
+.card { background: linear-gradient(180deg, var(--surface-top), var(--surface)); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; min-width: 0; }
+.card-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.card-h h2 { margin: 0; font-size: 17px; font-weight: 600; }
+
+/* Hero dials */
+.hero { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 22px 12px 16px; position: relative; }
+.src { position: absolute; top: -11px; right: 44px; font-size: 10px; font-weight: 700; letter-spacing: .14em; padding: 4px 9px;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--inset); color: var(--text-2); }
+.dial { display: flex; flex-direction: column; align-items: center; gap: 10px; border: 0; background: none; cursor: pointer; padding: 0; }
+.dial svg { width: min(118px, 26vw); height: auto; display: block; }
+.dial .lab { font-size: 11.5px; font-weight: 700; letter-spacing: .14em; color: var(--text-2); }
+.dial:hover .lab { color: var(--text); }
+
+.greet { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.greet h2 { margin: 0; font-size: 20px; font-weight: 700; }
+.pills { display: flex; gap: 6px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 13px; font-size: 12px; font-weight: 600;
+  border: 1px solid currentColor; }
+.pill i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.synth p { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.4; text-wrap: pretty; }
+.synth p + p { margin-top: 6px; font-weight: 400; font-size: 13.5px; color: var(--text-2); }
+
+.metrics-h { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { padding: 14px 16px 16px; }
+.tile .t-l { display: flex; align-items: center; gap: 7px; }
+.tile .t-l svg { width: 14px; height: 14px; }
+.tile .t-v { font-size: 26px; font-weight: 700; margin: 8px 0 12px; letter-spacing: -.01em; }
+.tile .t-v small { font-size: 15px; font-weight: 600; color: var(--text-2); margin-left: 3px; }
+.tile .t-d { font-size: 12px; color: var(--text-3); margin-top: 8px; }
+.bar { height: 6px; border-radius: 3px; background: var(--inset); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 3px; min-width: 6px; }
+
+/* Sleep */
+.ringbox { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0 4px; }
+.ringbox svg { width: min(200px, 54vw); height: auto; }
+.ringbox .q { font-weight: 600; font-size: 14px; }
+.chip { font-size: 10px; font-weight: 700; letter-spacing: .14em; padding: 3px 9px; border-radius: 9px; background: var(--inset); color: var(--text-2); border: 1px solid var(--border); }
+.nightnav { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.nightnav h2 { margin: 2px 0 0; font-size: 19px; font-weight: 700; }
+.range-chip { font-size: 12.5px; color: var(--text-2); padding: 6px 11px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); white-space: nowrap; }
+.times { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.kv .k { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.kv .v { font-size: 20px; font-weight: 700; margin-top: 3px; }
+.hyp { width: 100%; height: auto; display: block; margin-top: 6px; }
+.stages { display: flex; flex-direction: column; gap: 11px; }
+.stage-row { display: grid; grid-template-columns: 74px 1fr auto; gap: 12px; align-items: center; font-size: 14px; }
+.stage-row .sw { display: flex; align-items: center; gap: 8px; }
+.stage-row .sw i { width: 9px; height: 9px; border-radius: 3px; }
+.stage-row .val { text-align: right; color: var(--text-2); white-space: nowrap; min-width: 96px; }
+.stage-row .val b { color: var(--text); font-weight: 600; }
+
+/* Trends */
+.seg { display: inline-flex; padding: 3px; border-radius: 11px; background: var(--inset); border: 1px solid var(--border); }
+.seg button { border: 0; background: none; padding: 5px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.trend .tv { display: flex; align-items: baseline; gap: 10px; margin: 2px 0 8px; }
+.trend .tv b { font-size: 24px; font-weight: 700; }
+.trend .tv span { font-size: 12.5px; color: var(--text-3); }
+.trend svg { width: 100%; height: auto; display: block; }
+
+/* Workouts */
+.wlist { display: flex; flex-direction: column; }
+.wrow { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--border); }
+.wrow:first-child { border-top: 0; padding-top: 2px; }
+.wicon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--inset); color: var(--s100); }
+.wicon svg { width: 19px; height: 19px; }
+.wrow .wn { font-weight: 600; }
+.wrow .wm { font-size: 12.5px; color: var(--text-3); margin-top: 2px; overflow-wrap: anywhere; }
+.effort-chip { font-weight: 700; font-size: 15px; color: var(--s100); text-align: right; }
+.effort-chip small { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .1em; color: var(--text-3); }
+.stats3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+
+/* Lock */
+.lock { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: var(--canvas);
+  padding: 20px max(20px, env(safe-area-inset-right, 0px)) 20px max(20px, env(safe-area-inset-left, 0px)); }
+.lock form { width: min(360px, 100%); display: flex; flex-direction: column; gap: 14px; text-align: center; }
+.lock h1 { margin: 6px 0 0; font-size: 24px; }
+.lock p { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.45; }
+.lock input[type=password] { height: 46px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  padding: 0 14px; font: inherit; font-size: 16px; }
+.lock label { display: flex; gap: 8px; justify-content: center; align-items: center; font-size: 13px; color: var(--text-2); }
+.btn { height: 46px; border-radius: 12px; border: 0; background: var(--mint); color: #0B1F19; font-weight: 700; font-size: 15px; cursor: pointer; }
+.err { color: var(--bad); font-size: 13px; min-height: 18px; }
+.empty { color: var(--text-3); font-size: 14px; padding: 6px 0; }
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .wrap { padding-block: 22px calc(96px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .tabbar { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    padding: 8px max(10px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
+    background: color-mix(in srgb, var(--canvas) 86%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--border); }
+  .tabbar .nav-item { flex-direction: column; gap: 3px; font-size: 10.5px; padding: 6px 2px; justify-content: center; align-items: center; }
+  .tabbar .nav-item svg { width: 21px; height: 21px; }
+  .tabbar .nav-item[aria-current="page"] { background: none; box-shadow: none; color: var(--mint); }
+  .head h1 { font-size: 27px; }
+  .times { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .src { right: 18px; }
+}
+@media (max-width: 420px) {
+  .grid2 { gap: 10px; }
+  .tile { padding: 12px 13px 14px; }
+  .tile .t-v { font-size: 22px; }
+  .stage-row { grid-template-columns: 62px 1fr auto; gap: 8px; font-size: 13px; }
+  .stage-row .val { min-width: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .arc { transition: stroke-dashoffset .7s cubic-bezier(.2,.8,.2,1); }
+}
+</style>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Sections">
+    <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--steel)" stroke-width="3" stroke-dasharray="44 13" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" fill="var(--steel)"/></svg>NOOP</div>
+    <nav id="side-nav" style="display:flex;flex-direction:column;gap:2px"></nav>
+    <div class="side-foot"><div class="status" id="status"><i class="dot"></i><div><b id="status-t">Loading</b><span id="status-s"></span></div></div></div>
+  </aside>
+  <main class="main"><div class="wrap" id="view" aria-live="polite"></div></main>
+  <nav class="tabbar" id="tab-nav" aria-label="Sections"></nav>
+</div>
+
+<div class="lock" id="lock" hidden>
+  <form id="lock-form" autocomplete="off">
+    <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true" style="margin:0 auto"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--steel)" stroke-width="3" stroke-dasharray="44 13" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" fill="var(--steel)"/></svg>
+    <h1>Unlock your data</h1>
+    <p>Your health data is encrypted. Enter the passphrase you chose when you set up the Mac sync.</p>
+    <input type="password" id="pass" placeholder="Passphrase" aria-label="Passphrase" required>
+    <label><input type="checkbox" id="remember" checked> Remember on this device</label>
+    <button class="btn" type="submit">Unlock</button>
+    <div class="err" id="lock-err" role="alert"></div>
+  </form>
+</div>
+
+<script id="sample-data" type="application/json">__SAMPLE__</script>
+<script>
+(() => {
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+
+/* ---------- Icons ---------- */
+const I = {
+  today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>',
+  sleep: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>',
+  trends: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/></svg>',
+  workouts: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4.5" r="1.8"/><path d="M8 21l3-6 3 2v5M6.5 11.5 9 8l4 1 2.5 3.5H19M11 15l-2.5-1"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>',
+  wave: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2.5-6 4 13 3-9 1.5 2H22"/></svg>',
+  drop: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5S5.5 10 5.5 14.5a6.5 6.5 0 0 0 13 0C18.5 10 12 2.5 12 2.5Z"/></svg>',
+  lungs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v8m0 0-3 2.5M12 11l3 2.5M8.5 7C5 7 3 12 3 17c0 2 1.5 3 3 3s3.5-1 3.5-3V9M15.5 7C19 7 21 12 21 17c0 2-1.5 3-3 3s-3.5-1-3.5-3V9"/></svg>',
+  steps: '<svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="8" rx="3" ry="4.5"/><ellipse cx="16" cy="13" rx="3" ry="4.5"/><rect x="5.5" y="13.5" width="5" height="3" rx="1.5"/><rect x="13.5" y="18.5" width="5" height="3" rx="1.5"/></svg>',
+  temp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14.5V5a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0Z"/></svg>',
+  left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5" stroke-linecap="round"/></svg>',
+  battery: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="7" width="17" height="10" rx="2.5"/><path d="M22 10.5v3" stroke-linecap="round"/></svg>',
+};
+const NAV = [["today", "Today"], ["sleep", "Sleep"], ["trends", "Trends"], ["workouts", "Workouts"]];
+
+/* ---------- Color ramps (NOOP Titanium palette) ---------- */
+function hex2rgb(h) { h = h.replace("#", ""); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); }
+function ramp(stops, t) {
+  t = Math.max(0, Math.min(1, t));
+  for (let i = 1; i < stops.length; i++) {
+    const [p1, c1] = stops[i - 1], [p2, c2] = stops[i];
+    if (t <= p2) {
+      const k = (t - p1) / (p2 - p1 || 1), a = hex2rgb(css(c1)), b = hex2rgb(css(c2));
+      return `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * k)).join(",")})`;
+    }
+  }
+  return css(stops[stops.length - 1][1]);
+}
+const recColor = (v) => ramp([[0, "--r0"], [.3, "--r30"], [.55, "--r55"], [.78, "--r78"], [1, "--r100"]], v / 100);
+const effColor = (v) => ramp([[0, "--s0"], [.33, "--s33"], [.66, "--s66"], [1, "--s100"]], v / 100);
+
+/* ---------- Formatting ---------- */
+const fmtHM = (min) => { if (min == null) return "–"; const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h}h ${m}m` : `${m}m`; };
+const fmtTime = (ts) => new Date(ts * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+const parseDay = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const localDay = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const fmtDayLong = (s) => parseDay(s).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+const fmtDayShort = (s) => parseDay(s).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+function ago(ts) {
+  const s = Math.max(0, Date.now() / 1000 - ts);
+  if (s < 90) return "just now";
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  if (s < 86400 * 2) return `${Math.round(s / 3600)} h ago`;
+  return `${Math.round(s / 86400)} days ago`;
+}
+const avg = (a) => { const v = a.filter((x) => x != null && !Number.isNaN(x)); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+
+/* ---------- State ---------- */
+const S = { data: null, sample: true, dayIdx: -1, nightIdx: -1, range: 30 };
+try { const r = Number(store.get("noop.range")); if ([7, 30, 90].includes(r)) S.range = r; } catch {}
+
+/* ---------- SVG primitives ---------- */
+let uid = 0;
+function dial(value, max, color, text) {
+  const id = "d" + (++uid), r = 44, c = 2 * Math.PI * r;
+  const frac = value == null ? 0 : Math.max(0, Math.min(1, value / max));
+  return `<svg viewBox="0 0 120 120" aria-hidden="true">
+    <defs><radialGradient id="${id}k" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="var(--knob-hi)"/><stop offset="1" stop-color="var(--knob-lo)"/></radialGradient>
+    <linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--edge)"/><stop offset="1" stop-color="var(--inset)"/></linearGradient></defs>
+    <circle cx="60" cy="60" r="57" fill="url(#${id}b)"/>
+    <circle cx="60" cy="60" r="54" fill="var(--inset)"/>
+    <circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--border)" stroke-width="7"/>
+    <circle class="arc" cx="60" cy="60" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - frac)}" transform="rotate(-90 60 60)" opacity="${value == null ? 0 : 1}"/>
+    <circle cx="60" cy="60" r="35" fill="url(#${id}k)" stroke="var(--edge)" stroke-width="1"/>
+    <text x="60" y="61" text-anchor="middle" dominant-baseline="central" fill="var(--text)" font-family="var(--f-num)" font-weight="700" font-size="${String(text).length > 3 ? 21 : 26}">${esc(text)}</text>
+  </svg>`;
+}
+function bigRing(value, color) {
+  const r = 82, c = 2 * Math.PI * r, frac = value == null ? 0 : value / 100, id = "g" + (++uid);
+  return `<svg viewBox="0 0 200 200" aria-hidden="true">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="var(--lav)"/></linearGradient>
+    <radialGradient id="${id}k" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="var(--knob-hi)"/><stop offset="1" stop-color="var(--knob-lo)"/></radialGradient></defs>
+    <circle cx="100" cy="100" r="96" fill="var(--inset)" stroke="var(--border)"/>
+    <circle cx="100" cy="100" r="${r}" fill="none" stroke="var(--border)" stroke-width="12"/>
+    <circle class="arc" cx="100" cy="100" r="${r}" fill="none" stroke="url(#${id})" stroke-width="12" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - frac)}" transform="rotate(-90 100 100)"/>
+    <circle cx="100" cy="100" r="66" fill="url(#${id}k)" stroke="var(--edge)"/>
+    <text x="100" y="94" text-anchor="middle" dominant-baseline="central" fill="var(--text)" font-family="var(--f-num)" font-weight="700" font-size="46">${value == null ? "–" : Math.round(value)}</text>
+    <text x="100" y="128" text-anchor="middle" fill="var(--text-3)" font-size="13" font-family="var(--f-ui)">of 100</text>
+  </svg>`;
+}
+function lineChart(points, color, opts = {}) {
+  const narrow = innerWidth < 600, W = narrow ? 360 : 600, H = narrow ? 140 : 150, P = { l: 34, r: 10, t: 12, b: 22 };
+  const vals = points.map((p) => p.v).filter((v) => v != null);
+  if (vals.length < 2) return `<div class="empty">Not enough days yet.</div>`;
+  let lo = opts.min ?? Math.min(...vals), hi = opts.max ?? Math.max(...vals);
+  if (opts.min == null) { const pad = (hi - lo) * 0.15 || 1; lo -= pad; hi += pad; }
+  const x = (i) => P.l + (i / (points.length - 1)) * (W - P.l - P.r);
+  const y = (v) => P.t + (1 - (v - lo) / (hi - lo || 1)) * (H - P.t - P.b);
+  let d = "", area = "", first = null, last = null;
+  points.forEach((p, i) => {
+    if (p.v == null) return;
+    const X = x(i).toFixed(1), Y = y(p.v).toFixed(1);
+    d += (first == null ? "M" : "L") + X + " " + Y;
+    if (first == null) first = [X, Y]; last = [X, Y, p.v];
+  });
+  area = `${d}L${last[0]} ${H - P.b}L${first[0]} ${H - P.b}Z`;
+  const id = "c" + (++uid), dec = opts.dec ?? 0;
+  const ticks = opts.ticks || [lo + (hi - lo) * 0.15, (lo + hi) / 2, hi - (hi - lo) * 0.15];
+  const td = opts.tickDec ?? (hi - lo > 10 ? 0 : 1), tf = opts.tickFmt || ((t) => t.toFixed(td));
+  const xl = [0, Math.floor((points.length - 1) / 2), points.length - 1];
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.label || "trend")}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    ${ticks.map((t) => `<line x1="${P.l}" x2="${W - P.r}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" stroke="var(--border)" stroke-dasharray="3 5"/>
+      <text x="${P.l - 6}" y="${y(t).toFixed(1)}" text-anchor="end" dominant-baseline="central" fill="var(--text-3)" font-size="11" font-family="var(--f-num)">${esc(tf(t))}</text>`).join("")}
+    ${xl.map((i, k) => `<text x="${x(i).toFixed(1)}" y="${H - 5}" text-anchor="${["start", "middle", "end"][k]}" fill="var(--text-3)" font-size="11" font-family="var(--f-ui)">${esc(fmtDayShort(points[i].day).replace(/^\w+, /, ""))}</text>`).join("")}
+    <path d="${area}" fill="url(#${id})"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="4.5" fill="${color}" stroke="var(--surface)" stroke-width="2"/>
+  </svg>`;
+}
+function hypnogram(n) {
+  const narrow = innerWidth < 600, W = narrow ? 400 : 640, H = narrow ? 160 : 170, P = { l: narrow ? 44 : 52, r: 8, t: 8, b: 24 };
+  const rows = [["wake", "Awake", "--st-awake"], ["rem", "REM", "--st-rem"], ["light", "Light", "--st-light"], ["deep", "Deep", "--st-deep"]];
+  const rh = (H - P.t - P.b) / rows.length;
+  const x = (ts) => P.l + ((ts - n.startTs) / (n.endTs - n.startTs)) * (W - P.l - P.r);
+  let out = rows.map(([, lab], i) => `<text x="0" y="${(P.t + rh * i + rh / 2).toFixed(1)}" dominant-baseline="central" fill="var(--text-3)" font-size="11.5" font-family="var(--f-ui)">${lab}</text>
+    <line x1="${P.l}" x2="${W - P.r}" y1="${(P.t + rh * (i + 1)).toFixed(1)}" y2="${(P.t + rh * (i + 1)).toFixed(1)}" stroke="var(--border)" stroke-dasharray="2 5"/>`).join("");
+  for (const s of n.stages) {
+    const ri = rows.findIndex((r) => r[0] === s.stage); if (ri < 0) continue;
+    const x1 = x(s.start), x2 = Math.max(x1 + 1.2, x(s.end));
+    out += `<rect x="${x1.toFixed(1)}" y="${(P.t + rh * ri + 4).toFixed(1)}" width="${(x2 - x1).toFixed(1)}" height="${(rh - 8).toFixed(1)}" rx="3" fill="var(${rows[ri][2]})"/>`;
+  }
+  // hour ticks
+  const first = Math.ceil(n.startTs / 3600) * 3600;
+  for (let t = first; t < n.endTs; t += 3600 * 2) {
+    out += `<text x="${x(t).toFixed(1)}" y="${H - 6}" text-anchor="middle" fill="var(--text-3)" font-size="11" font-family="var(--f-num)">${esc(new Date(t * 1000).toLocaleTimeString([], { hour: "numeric" }))}</text>`;
+  }
+  return `<svg class="hyp" viewBox="0 0 ${W} ${H}" role="img" aria-label="Sleep stages through the night">${out}</svg>`;
+}
+
+/* ---------- Derived ---------- */
+function baseline(days, idx, key, n = 30) {
+  return avg(days.slice(Math.max(0, idx - n), idx).map((d) => d[key]));
+}
+function chargeState(r) {
+  if (r == null) return ["Calibrating", "var(--mint)"];
+  if (r >= 67) return ["Primed", "var(--r100)"];
+  if (r >= 34) return ["Maintain", "var(--mint)"];
+  return ["Recover", "var(--r0)"];
+}
+function restWord(v) { return v == null ? "No score" : v >= 85 ? "Optimal" : v >= 70 ? "Sufficient" : "Poor"; }
+function greeting() { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; }
+function synthesis(days, i) {
+  const d = days[i]; const lines = [];
+  const hb = baseline(days, i, "avgHrv"), rb = baseline(days, i, "restingHr");
+  if (d.avgHrv != null && hb) {
+    const pct = Math.round(((d.avgHrv - hb) / hb) * 100);
+    const dir = Math.abs(pct) < 4 ? "right at" : pct > 0 ? `${pct}% above` : `${-pct}% below`;
+    lines.push(`HRV ${Math.round(d.avgHrv)} ms is ${dir} your 30-day baseline of ${Math.round(hb)} ms.`);
+  } else if (d.avgHrv == null) lines.push("No HRV recorded for this night yet. Wear the strap overnight and keep NOOP syncing.");
+  const parts = [];
+  if (d.restingHr != null && rb) { const dv = Math.round(d.restingHr - rb); parts.push(`Resting HR ${d.restingHr} bpm, ${dv === 0 ? "level with" : Math.abs(dv) + (dv > 0 ? " above" : " below")} baseline.`); }
+  if (d.totalSleepMin != null) parts.push(`Slept ${fmtHM(d.totalSleepMin)}${d.sleepNeedMin ? ` against a ${fmtHM(d.sleepNeedMin)} need` : ""}${d.sleepDebtMin ? `, carrying ${fmtHM(d.sleepDebtMin)} of sleep debt` : ""}.`);
+  return [lines[0] || "Learning your baseline.", parts.join(" ")];
+}
+
+/* ---------- Views ---------- */
+function header(title, sub, right = "") {
+  return `<div class="head"><div><h1>${esc(title)}</h1><div class="sub">${esc(sub)}</div></div>${right}</div>`;
+}
+function sampleBanner() {
+  return S.sample ? `<div class="banner">${I.info}<div><b>Sample data.</b> These numbers are made up so you can see the layout. Your real data appears here once the Mac sync runs.</div></div>` : "";
+}
+function tile(icon, label, color, value, unit, frac, barColor, foot) {
+  if (value == null || !Number.isFinite(frac)) frac = null;
+  const pct = frac == null ? 0 : Math.max(0, Math.min(1, frac)) * 100;
+  return `<div class="card tile"><div class="t-l" style="color:${color}">${icon}<span class="over" style="color:inherit">${esc(label)}</span></div>
+    <div class="t-v num">${value == null ? "–" : esc(value)}${value != null && unit ? `<small>${esc(unit)}</small>` : ""}</div>
+    <div class="bar"><i style="width:${pct}%;background:${barColor || color};opacity:${frac == null ? 0 : 1}"></i></div>
+    ${foot ? `<div class="t-d">${esc(foot)}</div>` : ""}</div>`;
+}
+function vToday() {
+  const days = S.data.days; if (!days.length) return header("Today", "") + `<div class="card empty">No days synced yet.</div>`;
+  if (S.dayIdx < 0 || S.dayIdx >= days.length) S.dayIdx = days.length - 1;
+  const i = S.dayIdx, d = days[i], isLatest = i === days.length - 1;
+  const todayStr = localDay(new Date());
+  const title = d.day === todayStr ? "Today" : (d.day === localDay(new Date(Date.now() - 864e5)) ? "Yesterday" : fmtDayShort(d.day));
+  const batt = S.data.battery?.soc != null ? `<span class="batt num">${I.battery}${Math.round(S.data.battery.soc)}%</span>` : "";
+  const nav = `<div class="daynav">${batt}<button class="icon-btn" data-act="day-prev" aria-label="Previous day" ${i === 0 ? "disabled" : ""}>${I.left}</button><button class="icon-btn" data-act="day-next" aria-label="Next day" ${isLatest ? "disabled" : ""}>${I.right}</button></div>`;
+  const [state, stateColor] = chargeState(d.recovery);
+  const [s1, s2] = synthesis(days, i);
+  const hb = baseline(days, i, "avgHrv"), rb = baseline(days, i, "restingHr");
+  const steelGrad = `linear-gradient(90deg, color-mix(in srgb, var(--steel) 55%, transparent), var(--steel))`;
+  return header(title, fmtDayLong(d.day), nav) + sampleBanner() + `
+    <div class="card hero">
+      <span class="src">WHOOP</span>
+      <button class="dial" data-go="trends">${dial(d.recovery, 100, d.recovery == null ? "var(--border)" : recColor(d.recovery), d.recovery == null ? "–" : Math.round(d.recovery))}<span class="lab">CHARGE ›</span></button>
+      <button class="dial" data-go="workouts">${dial(d.strain, 100, effColor(d.strain ?? 0), d.strain == null ? "–" : (d.strain >= 10 ? Math.round(d.strain) : d.strain.toFixed(1)))}<span class="lab">EFFORT ›</span></button>
+      <button class="dial" data-go="sleep">${dial(d.sleepPerf, 100, "var(--rest)", d.sleepPerf == null ? "–" : Math.round(d.sleepPerf))}<span class="lab">REST ›</span></button>
+    </div>
+    <div class="greet"><h2>${isLatest ? greeting() : esc(fmtDayLong(d.day))}</h2>
+      <div class="pills"><span class="pill" style="color:${stateColor}"><i></i>${state}</span></div></div>
+    <div class="card synth"><div class="card-h"><span class="over">Synthesis</span></div><p>${esc(s1)}</p><p>${esc(s2)}</p></div>
+    <div class="metrics-h"><span class="over">Key metrics</span></div>
+    <div class="grid2">
+      ${tile(I.heart, "Recovery", d.recovery == null ? "var(--text-3)" : recColor(d.recovery), d.recovery == null ? null : Math.round(d.recovery), "%", d.recovery / 100, null, "Charge")}
+      ${tile(I.bolt, "Strain", "var(--s100)", d.strain?.toFixed(1), "/100", d.strain / 100, `linear-gradient(90deg,var(--s0),var(--s100))`, "Effort")}
+      ${tile(I.moon, "Rest", "var(--rest)", d.sleepPerf == null ? null : Math.round(d.sleepPerf), "%", d.sleepPerf / 100, null, restWord(d.sleepPerf))}
+      ${tile(I.wave, "HRV", "var(--steel)", d.avgHrv == null ? null : Math.round(d.avgHrv), "ms", d.avgHrv == null ? null : (d.avgHrv - 15) / 95, steelGrad, hb ? `Baseline ${Math.round(hb)} ms` : "")}
+      ${tile(I.heart, "Rest HR", "var(--coral)", d.restingHr, "bpm", d.restingHr == null ? null : (d.restingHr - 38) / 44, `linear-gradient(90deg,var(--s33),var(--coral))`, rb ? `Baseline ${Math.round(rb)} bpm` : "")}
+      ${tile(I.drop, "Blood oxygen", "var(--sky)", d.spo2Pct == null ? null : Math.round(d.spo2Pct), "%", d.spo2Pct == null ? null : (d.spo2Pct - 88) / 12, null, "")}
+      ${tile(I.lungs, "Respiratory", "var(--mint)", d.respRateBpm?.toFixed(1), "rpm", d.respRateBpm == null ? null : (d.respRateBpm - 8) / 16, null, "")}
+      ${tile(I.steps, "Steps", "var(--r78)", d.steps == null ? null : d.steps.toLocaleString(), "", d.steps == null ? null : d.steps / 12000, null, "")}
+    </div>
+    ${d.skinTempDevC != null ? `<div class="grid2">${tile(I.temp, "Skin temp", "var(--teal)", (d.skinTempDevC > 0 ? "+" : "") + d.skinTempDevC.toFixed(1), "°C", (d.skinTempDevC + 1.5) / 3, null, "vs. your baseline")}
+      ${tile(I.moon, "Sleep debt", "var(--rest)", d.sleepDebtMin == null ? null : fmtHM(d.sleepDebtMin), "", d.sleepDebtMin == null ? null : d.sleepDebtMin / 180, null, d.sleepNeedMin ? `Need ${fmtHM(d.sleepNeedMin)}` : "")}</div>` : ""}`;
+}
+function nightFor(dayStr) {
+  return S.data.nights.find((n) => localDay(new Date(n.endTs * 1000)) === dayStr);
+}
+function vSleep() {
+  const nights = S.data.nights, days = S.data.days;
+  if (!nights.length && !days.length) return header("Sleep", "") + `<div class="card empty">No nights synced yet.</div>`;
+  if (!nights.length) return header("Sleep", "") + sampleBanner() + `<div class="card empty">No detailed nights yet. Stage timelines appear once NOOP records a night.</div>`;
+  if (S.nightIdx < 0 || S.nightIdx >= nights.length) S.nightIdx = nights.length - 1;
+  const n = nights[S.nightIdx], endDay = localDay(new Date(n.endTs * 1000));
+  const d = days.find((x) => x.day === endDay) || {};
+  const inBed = (n.endTs - n.startTs) / 60;
+  let mins = { wake: 0, light: 0, deep: 0, rem: 0 };
+  if (n.stages?.length) for (const s of n.stages) mins[s.stage] = (mins[s.stage] || 0) + (s.end - s.start) / 60;
+  else if (n.minutes) mins = { wake: n.minutes.awake || 0, light: n.minutes.light || 0, deep: n.minutes.deep || 0, rem: n.minutes.rem || 0 };
+  const asleep = mins.light + mins.deep + mins.rem || d.totalSleepMin;
+  const daysAgo = Math.round((parseDay(localDay(new Date())) - parseDay(endDay)) / 864e5);
+  const navTitle = daysAgo === 0 ? "Last night" : daysAgo === 1 ? "1 night ago" : `${daysAgo} nights ago`;
+  const sd = (ts) => { const x = new Date(ts * 1000); return `${x.toLocaleDateString([], { weekday: "short" })} ${x.getDate()}`; };
+  const span = `${sd(n.startTs)} → ${sd(n.endTs)}`;
+  const total = mins.wake + mins.light + mins.deep + mins.rem || 1;
+  const row = (k, lab, v) => `<div class="stage-row"><span class="sw"><i style="background:var(--st-${k})"></i>${lab}</span>
+    <div class="bar"><i style="width:${(v / total) * 100}%;background:var(--st-${k})"></i></div>
+    <span class="val num"><b>${fmtHM(v)}</b> · ${Math.round((v / total) * 100)}%</span></div>`;
+  return header("Sleep", fmtDayLong(endDay)) + sampleBanner() + `
+    <div class="card ringbox">${bigRing(d.sleepPerf, "var(--rest)")}<div class="q">${restWord(d.sleepPerf)}</div><span class="chip">WHOOP</span></div>
+    <div class="nightnav">
+      <button class="icon-btn" data-act="night-prev" aria-label="Previous night" ${S.nightIdx === 0 ? "disabled" : ""}>${I.left}</button>
+      <div style="flex:1;min-width:0"><div class="over">Sleep</div><h2>${navTitle}</h2></div>
+      <span class="range-chip num">${esc(span)}</span>
+      <button class="icon-btn" data-act="night-next" aria-label="Next night" ${S.nightIdx === nights.length - 1 ? "disabled" : ""}>${I.right}</button>
+    </div>
+    <div class="card"><div class="times">
+      <div class="kv"><div class="k">Asleep</div><div class="v num">${fmtTime(n.startTs)}</div></div>
+      <div class="kv"><div class="k">Woke</div><div class="v num">${fmtTime(n.endTs)}</div></div>
+      <div class="kv"><div class="k">Time asleep</div><div class="v num">${fmtHM(asleep)}</div></div>
+      <div class="kv"><div class="k">In bed</div><div class="v num">${fmtHM(inBed)}</div></div>
+    </div>${n.stages?.length ? hypnogram(n) : ""}</div>
+    <div class="card"><div class="card-h"><h2>Stages</h2><span class="over">${esc(navTitle)}</span></div><div class="stages">
+      ${row("wake", "Awake", mins.wake)}${row("light", "Light", mins.light)}${row("deep", "Deep", mins.deep)}${row("rem", "REM", mins.rem)}</div></div>
+    <div class="grid2">
+      ${tile(I.moon, "Efficiency", "var(--rest)", n.efficiency == null ? null : Math.round(n.efficiency), "%", n.efficiency / 100, null, "Asleep ÷ in bed")}
+      ${tile(I.wave, "Sleep HRV", "var(--steel)", n.avgHrv == null ? null : Math.round(n.avgHrv), "ms", n.avgHrv == null ? null : (n.avgHrv - 15) / 95, null, "")}
+      ${tile(I.heart, "Sleep RHR", "var(--coral)", n.restingHr, "bpm", n.restingHr == null ? null : (n.restingHr - 38) / 44, null, "")}
+      ${tile(I.info, "Disturbances", "var(--text-2)", d.disturbances, "", d.disturbances == null ? null : d.disturbances / 25, "var(--lav)", "")}
+    </div>`;
+}
+function vTrends() {
+  const all = S.data.days, days = all.slice(-S.range);
+  const seg = `<div class="seg" role="group" aria-label="Range">${[7, 30, 90].map((r) => `<button data-range="${r}" aria-pressed="${S.range === r}">${r}D</button>`).join("")}</div>`;
+  const card = (label, key, color, unit, opts = {}) => {
+    const pts = days.map((d) => ({ day: d.day, v: opts.map ? opts.map(d[key]) : d[key] }));
+    const vals = pts.map((p) => p.v).filter((v) => v != null);
+    const lastV = vals.length ? vals[vals.length - 1] : null, a = avg(vals), dec = opts.dec ?? 0;
+    const f = (v) => v == null ? "–" : (opts.fmt ? opts.fmt(v) : v.toFixed(dec));
+    return `<div class="card trend"><div class="card-h"><h2>${esc(label)}</h2><span class="over">${S.range} days</span></div>
+      <div class="tv"><b class="num">${f(lastV)}<small style="font-size:14px;color:var(--text-2);margin-left:3px">${esc(unit)}</small></b><span class="num">avg ${f(a)}${esc(unit)}</span></div>
+      ${lineChart(pts, color, { ...opts, label })}</div>`;
+  };
+  return header("Trends", `${fmtDayShort(days[0].day)} – ${fmtDayShort(days[days.length - 1].day)}`, seg) + sampleBanner() + `
+    ${card("Charge", "recovery", "var(--r100)", "%", { min: 0, max: 100, ticks: [25, 50, 75] })}
+    ${card("Effort", "strain", "var(--s100)", "", { min: 0, max: 100, dec: 1, ticks: [25, 50, 75], tickDec: 0 })}
+    ${card("Rest", "sleepPerf", "var(--rest)", "%", { min: 0, max: 100, ticks: [25, 50, 75] })}
+    ${card("Heart rate variability", "avgHrv", "var(--steel)", " ms")}
+    ${card("Resting heart rate", "restingHr", "var(--coral)", " bpm")}
+    ${card("Time asleep", "totalSleepMin", "var(--st-light)", "", { map: (v) => v == null ? null : v / 60, dec: 1, fmt: (v) => fmtHM(v * 60), tickFmt: (t) => t.toFixed(1) + "h" })}
+    ${card("Steps", "steps", "var(--r78)", "", { fmt: (v) => Math.round(v).toLocaleString(), tickFmt: (t) => (t / 1000).toFixed(1) + "k" })}`;
+}
+function vWorkouts() {
+  const ws = S.data.workouts.slice().sort((a, b) => b.startTs - a.startTs);
+  const cutoff = Date.now() / 1000 - 30 * 86400, recent = ws.filter((w) => w.startTs >= cutoff);
+  const totalMin = recent.reduce((s, w) => s + (w.durationS || 0) / 60, 0), ae = avg(recent.map((w) => w.strain));
+  const rows = ws.slice(0, 40).map((w) => `<div class="wrow"><div class="wicon">${I.workouts}</div>
+      <div style="min-width:0"><div class="wn">${esc(w.sport)}</div>
+      <div class="wm num">${esc(new Date(w.startTs * 1000).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }))} · ${fmtTime(w.startTs)} · ${fmtHM((w.durationS || 0) / 60)}${w.energyKcal ? ` · ${Math.round(w.energyKcal)} kcal` : ""}${w.avgHr ? ` · ${w.avgHr} bpm avg` : ""}${w.distanceM ? ` · ${(w.distanceM / 1609.34).toFixed(1)} mi` : ""}</div></div>
+      <div class="effort-chip num">${w.strain == null ? "–" : w.strain.toFixed(1)}<small>EFFORT</small></div></div>`).join("");
+  return header("Workouts", "Most recent first") + sampleBanner() + `
+    <div class="card"><div class="stats3">
+      <div class="kv"><div class="k">Last 30 days</div><div class="v num">${recent.length}</div></div>
+      <div class="kv"><div class="k">Total time</div><div class="v num">${fmtHM(totalMin)}</div></div>
+      <div class="kv"><div class="k">Avg effort</div><div class="v num">${ae == null ? "–" : ae.toFixed(1)}</div></div>
+    </div></div>
+    <div class="card">${rows ? `<div class="wlist">${rows}</div>` : `<div class="empty">No workouts yet.</div>`}</div>`;
+}
+
+/* ---------- Router ---------- */
+const VIEWS = { today: vToday, sleep: vSleep, trends: vTrends, workouts: vWorkouts };
+function route() { const h = location.hash.replace("#", ""); return VIEWS[h] ? h : "today"; }
+function renderNav() {
+  const r = route();
+  const html = NAV.map(([k, lab]) => `<a class="nav-item" href="#${k}" ${k === r ? 'aria-current="page"' : ""}>${I[k]}<span>${lab}</span></a>`).join("");
+  $("#side-nav").innerHTML = html; $("#tab-nav").innerHTML = html;
+}
+function renderStatus() {
+  const el = $("#status"), ts = S.data?.lastSampleTs;
+  const stale = !ts || Date.now() / 1000 - ts > 6 * 3600;
+  el.classList.toggle("stale", stale);
+  $("#status-t").textContent = S.sample ? "Sample data" : ts ? `Synced ${ago(ts)}` : "Never synced";
+  const via = S.data?.sources?.[0]?.name; const viaTxt = via === "iphone-backup" ? "via iPhone" : via === "mac" ? "via Mac" : "";
+  $("#status-s").textContent = [viaTxt, S.data?.battery?.soc != null ? `Battery ${Math.round(S.data.battery.soc)}%` : ""].filter(Boolean).join(" · ");
+}
+function render() {
+  if (!S.data) return;
+  renderNav(); renderStatus();
+  $("#view").innerHTML = VIEWS[route()]();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act],[data-go],[data-range]"); if (!b) return;
+  if (b.dataset.go) { location.hash = b.dataset.go; return; }
+  if (b.dataset.range) { S.range = Number(b.dataset.range); store.set("noop.range", S.range); render(); return; }
+  const a = b.dataset.act;
+  if (a === "day-prev") S.dayIdx--; if (a === "day-next") S.dayIdx++;
+  if (a === "night-prev") S.nightIdx--; if (a === "night-next") S.nightIdx++;
+  render();
+});
+window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
+let rz, lastNarrow = innerWidth < 600;
+window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { const n = innerWidth < 600; if (n !== lastNarrow) { lastNarrow = n; render(); } }, 150); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", render);
+new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+/* ---------- Data loading + decryption ---------- */
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function decrypt(payload, pass) {
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64(payload.salt), iterations: payload.iter, hash: "SHA-256" },
+    base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(payload.iv) }, key, b64(payload.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function accept(data, sample) {
+  const keepDay = S.data && S.dayIdx !== S.data.days.length - 1, keepNight = S.data && S.nightIdx !== S.data.nights.length - 1;
+  S.data = { days: [], nights: [], workouts: [], ...data }; S.sample = sample;
+  S.data.days.sort((a, b) => a.day.localeCompare(b.day)); S.data.nights.sort((a, b) => a.startTs - b.startTs);
+  if (!keepDay) S.dayIdx = S.data.days.length - 1;
+  if (!keepNight) S.nightIdx = S.data.nights.length - 1;
+  render();
+}
+let pending = null;
+async function load() {
+  let payload = null;
+  try {
+    const r = await fetch("/api/data", { cache: "no-store" });
+    if (r.ok && (r.headers.get("content-type") || "").includes("json")) payload = await r.json();
+  } catch {}
+  if (payload && Array.isArray(payload.days) && !payload.ct) { accept(payload, false); return; } // local dev server only
+  if (!payload || !payload.ct) {
+    if (!S.data || S.sample) { const el = document.getElementById("sample-data"); accept(JSON.parse(el.textContent), true); }
+    return;
+  }
+  const saved = store.get("noop.pass");
+  if (saved) {
+    try { accept(await decrypt(payload, saved), false); $("#lock").hidden = true; return; }
+    catch { store.del("noop.pass"); }
+  }
+  pending = payload; $("#lock").hidden = false; setTimeout(() => $("#pass").focus(), 50);
+}
+$("#lock-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const pass = $("#pass").value; $("#lock-err").textContent = "";
+  try {
+    const data = await decrypt(pending, pass);
+    if ($("#remember").checked) store.set("noop.pass", pass);
+    $("#lock").hidden = true; $("#pass").value = ""; accept(data, false);
+  } catch { $("#lock-err").textContent = "That passphrase didn't unlock the data. Check it and try again."; }
+});
+load();
+setInterval(() => { if (document.visibilityState === "visible") load(); }, 5 * 60 * 1000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); });
+})();
+</script>

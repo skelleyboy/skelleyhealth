@@ -1,0 +1,6 @@
+node_modules/
+.netlify/
+*.local.json
+test/
+shots/
+preview.html
